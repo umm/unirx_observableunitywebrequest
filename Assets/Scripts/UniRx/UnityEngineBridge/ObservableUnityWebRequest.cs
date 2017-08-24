@@ -45,6 +45,7 @@ namespace UniRx {
             );
         }
 
+#if !UNITY_IOS && !UNITY_ANDROID
         public static IObservable<MovieTexture> GetMovieTexture(string url, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
             return Get(
                 url,
@@ -53,6 +54,7 @@ namespace UniRx {
                 progress
             );
         }
+#endif
 
         public static IObservable<T> Get<T, TDownloadHandler>(string url, Func<TDownloadHandler, T> downloadedCallback, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) where TDownloadHandler : DownloadHandler {
             return Observable.FromCoroutine<T>(
