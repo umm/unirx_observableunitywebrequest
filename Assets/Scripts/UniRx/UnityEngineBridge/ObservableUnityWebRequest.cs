@@ -28,30 +28,42 @@ namespace UniRx {
         }
 
         public static IObservable<Texture2D> GetTexture(string url, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
-            return Get(
-                url,
-                (DownloadHandlerTexture downloadHandler) => downloadHandler.texture,
-                requestHeaderMap,
-                progress
+            return Observable.FromCoroutine<Texture2D>(
+                (observer, cancellationToken) => Request(
+                    UnityWebRequestTexture.GetTexture(url),
+                    requestHeaderMap,
+                    (DownloadHandlerTexture downloadHandler) => downloadHandler.texture,
+                    observer,
+                    progress,
+                    cancellationToken
+                )
             );
         }
 
-        public static IObservable<AudioClip> GetAudioClip(string url, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
-            return Get(
-                url,
-                (DownloadHandlerAudioClip downloadHandler) => downloadHandler.audioClip,
-                requestHeaderMap,
-                progress
+        public static IObservable<AudioClip> GetAudioClip(string url, AudioType audioType, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
+            return Observable.FromCoroutine<AudioClip>(
+                (observer, cancellationToken) => Request(
+                    UnityWebRequestMultimedia.GetAudioClip(url, audioType),
+                    requestHeaderMap,
+                    (DownloadHandlerAudioClip downloadHandler) => downloadHandler.audioClip,
+                    observer,
+                    progress,
+                    cancellationToken
+                )
             );
         }
 
 #if !UNITY_IOS && !UNITY_ANDROID
         public static IObservable<MovieTexture> GetMovieTexture(string url, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
-            return Get(
-                url,
-                (DownloadHandlerMovieTexture downloadHandler) => downloadHandler.movieTexture,
-                requestHeaderMap,
-                progress
+            return Observable.FromCoroutine<MovieTexture>(
+                (observer, cancellationToken) => Request(
+                    UnityWebRequestMultimedia.GetMovieTexture(url),
+                    requestHeaderMap,
+                    (DownloadHandlerMovieTexture downloadHandler) => downloadHandler.movieTexture,
+                    observer,
+                    progress,
+                    cancellationToken
+                )
             );
         }
 #endif
