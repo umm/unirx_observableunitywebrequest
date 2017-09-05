@@ -10,7 +10,7 @@
 # Install
 
 ```shell
-$ npm install @umm/unirx_observableunitywebrequest
+$ npm install github:umm-projects/unirx_observableunitywebrequest.git
 ```
 
 # Usage
