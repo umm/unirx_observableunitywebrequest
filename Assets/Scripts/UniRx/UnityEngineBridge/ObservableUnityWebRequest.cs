@@ -9,6 +9,14 @@ namespace UniRx {
     // ReSharper disable once PartialTypeWithSinglePart
     public static partial class ObservableUnityWebRequest {
 
+        public static IObservable<UnityWebRequest> GetUnityWebRequest(string url, Func<string, UnityWebRequest> request = null, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
+            return Request(
+                request == null ? UnityWebRequest.Get(url) : request(url),
+                requestHeaderMap,
+                progress
+            );
+        }
+
         public static IObservable<string> GetText(string url, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
             return Get(
                 url,
@@ -28,56 +36,40 @@ namespace UniRx {
         }
 
         public static IObservable<Texture2D> GetTexture(string url, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
-            return Observable.FromCoroutine<Texture2D>(
-                (observer, cancellationToken) => Request(
-                    UnityWebRequestTexture.GetTexture(url),
-                    requestHeaderMap,
-                    (DownloadHandlerTexture downloadHandler) => downloadHandler.texture,
-                    observer,
-                    progress,
-                    cancellationToken
-                )
+            return Request(
+                UnityWebRequestTexture.GetTexture(url),
+                requestHeaderMap,
+                (DownloadHandlerTexture downloadHandler) => downloadHandler.texture,
+                progress
             );
         }
 
         public static IObservable<AudioClip> GetAudioClip(string url, AudioType audioType, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
-            return Observable.FromCoroutine<AudioClip>(
-                (observer, cancellationToken) => Request(
-                    UnityWebRequestMultimedia.GetAudioClip(url, audioType),
-                    requestHeaderMap,
-                    (DownloadHandlerAudioClip downloadHandler) => downloadHandler.audioClip,
-                    observer,
-                    progress,
-                    cancellationToken
-                )
+            return Request(
+                UnityWebRequestMultimedia.GetAudioClip(url, audioType),
+                requestHeaderMap,
+                (DownloadHandlerAudioClip downloadHandler) => downloadHandler.audioClip,
+                progress
             );
         }
 
 #if !UNITY_IOS && !UNITY_ANDROID
         public static IObservable<MovieTexture> GetMovieTexture(string url, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
-            return Observable.FromCoroutine<MovieTexture>(
-                (observer, cancellationToken) => Request(
-                    UnityWebRequestMultimedia.GetMovieTexture(url),
-                    requestHeaderMap,
-                    (DownloadHandlerMovieTexture downloadHandler) => downloadHandler.movieTexture,
-                    observer,
-                    progress,
-                    cancellationToken
-                )
+            return Request(
+                UnityWebRequestMultimedia.GetMovieTexture(url),
+                requestHeaderMap,
+                (DownloadHandlerMovieTexture downloadHandler) => downloadHandler.movieTexture,
+                progress
             );
         }
 #endif
 
         public static IObservable<T> Get<T, TDownloadHandler>(string url, Func<TDownloadHandler, T> downloadedCallback, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) where TDownloadHandler : DownloadHandler {
-            return Observable.FromCoroutine<T>(
-                (observer, cancellationToken) => Request(
-                    UnityWebRequest.Get(url),
-                    requestHeaderMap,
-                    downloadedCallback,
-                    observer,
-                    progress,
-                    cancellationToken
-                )
+            return Request(
+                UnityWebRequest.Get(url),
+                requestHeaderMap,
+                downloadedCallback,
+                progress
             );
         }
 
@@ -114,18 +106,19 @@ namespace UniRx {
         }
 
         public static IObservable<AssetBundle> GetAssetBundle(Func<UnityWebRequest> callback, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
-            return Observable.FromCoroutine<AssetBundle>(
-                (observer, cancellationToken) => {
-                    return Request(
-                        callback(),
-                        requestHeaderMap,
-                        (DownloadHandlerAssetBundle downloadHandler) => downloadHandler.assetBundle,
-                        observer,
-                        progress,
-                        cancellationToken
-                    );
-                }
+            IObservable<AssetBundle> stream = Request(
+                callback(),
+                requestHeaderMap,
+                (DownloadHandlerAssetBundle downloadHandler) => downloadHandler.assetBundle,
+                progress
             );
+            if (!Caching.ready) {
+                Observable.EveryUpdate()
+                    .Where(_ => Caching.ready)
+                    .Take(1)
+                    .SelectMany(_ => stream);
+            }
+            return stream;
         }
 
         public static IObservable<Unit> Post(string url, Dictionary<string, string> postData, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
@@ -137,110 +130,107 @@ namespace UniRx {
         }
 
         public static IObservable<Unit> Post(string url, WWWForm postData, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
-            return Observable.FromCoroutine<Unit>(
-                (observer, cancellationToken) => Request(
-                    UnityWebRequest.Post(url, postData),
-                    requestHeaderMap,
-                    (DownloadHandler _) => Unit.Default,
-                    observer,
-                    progress,
-                    cancellationToken
-                )
+            return Request(
+                UnityWebRequest.Post(url, postData),
+                requestHeaderMap,
+                (DownloadHandler _) => Unit.Default,
+                progress
             );
         }
 
         public static IObservable<Unit> Post(string url, List<IMultipartFormSection> multipartFormSectionList, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
-            return Observable.FromCoroutine<Unit>(
-                (observer, cancellationToken) => Request(
-                    UnityWebRequest.Post(url, multipartFormSectionList),
-                    requestHeaderMap,
-                    (DownloadHandler _) => Unit.Default,
-                    observer,
-                    progress,
-                    cancellationToken
-                )
+            return Request(
+                UnityWebRequest.Post(url, multipartFormSectionList),
+                requestHeaderMap,
+                (DownloadHandler _) => Unit.Default,
+                progress
             );
         }
 
         public static IObservable<Unit> Post(string url, List<IMultipartFormSection> multipartFormSectionList, byte[] boundary, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
-            return Observable.FromCoroutine<Unit>(
-                (observer, cancellationToken) => Request(
-                    UnityWebRequest.Post(url, multipartFormSectionList, boundary),
-                    requestHeaderMap,
-                    (DownloadHandler _) => Unit.Default,
-                    observer,
-                    progress,
-                    cancellationToken
-                )
+            return Request(
+                UnityWebRequest.Post(url, multipartFormSectionList, boundary),
+                requestHeaderMap,
+                (DownloadHandler _) => Unit.Default,
+                progress
             );
         }
 
         public static IObservable<Unit> Post(string url, string postData, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
-            return Observable.FromCoroutine<Unit>(
-                (observer, cancellationToken) => Request(
-                    UnityWebRequest.Post(url, postData),
-                    requestHeaderMap,
-                    (DownloadHandler _) => Unit.Default,
-                    observer,
-                    progress,
-                    cancellationToken
-                )
+            return Request(
+                UnityWebRequest.Post(url, postData),
+                requestHeaderMap,
+                (DownloadHandler _) => Unit.Default,
+                progress
             );
         }
 
         public static IObservable<Unit> Head(string url, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
-            return Observable.FromCoroutine<Unit>(
-                (observer, cancellationToken) => Request(
-                    UnityWebRequest.Head(url),
-                    requestHeaderMap,
-                    (DownloadHandler _) => Unit.Default,
-                    observer,
-                    progress,
-                    cancellationToken
-                )
+            return Request(
+                UnityWebRequest.Head(url),
+                requestHeaderMap,
+                (DownloadHandler _) => Unit.Default,
+                progress
             );
         }
 
         public static IObservable<Unit> Put(string url, string data, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
-            return Observable.FromCoroutine<Unit>(
-                (observer, cancellationToken) => Request(
-                    UnityWebRequest.Put(url, data),
-                    requestHeaderMap,
-                    (DownloadHandler _) => Unit.Default,
-                    observer,
-                    progress,
-                    cancellationToken
-                )
+            return Request(
+                UnityWebRequest.Put(url, data),
+                requestHeaderMap,
+                (DownloadHandler _) => Unit.Default,
+                progress
             );
         }
 
         public static IObservable<Unit> Put(string url, byte[] data, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
-            return Observable.FromCoroutine<Unit>(
-                (observer, cancellationToken) => Request(
-                    UnityWebRequest.Put(url, data),
-                    requestHeaderMap,
-                    (DownloadHandler _) => Unit.Default,
-                    observer,
-                    progress,
-                    cancellationToken
-                )
+            return Request(
+                UnityWebRequest.Put(url, data),
+                requestHeaderMap,
+                (DownloadHandler _) => Unit.Default,
+                progress
             );
         }
 
         public static IObservable<Unit> Delete(string url, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
-            return Observable.FromCoroutine<Unit>(
-                (observer, cancellationToken) => Request(
-                    UnityWebRequest.Delete(url),
-                    requestHeaderMap,
-                    (DownloadHandler _) => Unit.Default,
-                    observer,
-                    progress,
-                    cancellationToken
-                )
+            return Request(
+                UnityWebRequest.Delete(url),
+                requestHeaderMap,
+                (DownloadHandler _) => Unit.Default,
+                progress
             );
         }
 
-        private static IEnumerator Request<T, TDownloadHandler>(UnityWebRequest request, Dictionary<string, string> requestHeaderMap, Func<TDownloadHandler, T> downloadedCallback, IObserver<T> observer, IProgress<float> progress, CancellationToken cancellationToken) where TDownloadHandler : DownloadHandler {
+        private static IObservable<UnityWebRequest> Request(UnityWebRequest request, Dictionary<string, string> requestHeaderMap, IProgress<float> progress) {
+            return Observable
+                .FromCoroutine<UnityWebRequest>(
+                    (observer, cancellationToken) => SendRequest(
+                        request,
+                        requestHeaderMap,
+                        observer,
+                        progress,
+                        cancellationToken
+                    )
+                );
+        }
+
+        private static IObservable<T> Request<T, TDownloadHandler>(UnityWebRequest request, Dictionary<string, string> requestHeaderMap, Func<TDownloadHandler, T> downloadedCallback, IProgress<float> progress) where TDownloadHandler : DownloadHandler {
+            return Request(
+                    request,
+                    requestHeaderMap,
+                    progress
+                )
+                .Select(
+                    (unityWebRequest) => {
+                        if (downloadedCallback != default(Func<TDownloadHandler, T>) && (request.downloadHandler as TDownloadHandler) != default(TDownloadHandler)) {
+                            return downloadedCallback((TDownloadHandler)unityWebRequest.downloadHandler);
+                        }
+                        return default(T);
+                    }
+                );
+        }
+
+        private static IEnumerator SendRequest(UnityWebRequest request, Dictionary<string, string> requestHeaderMap, IObserver<UnityWebRequest> observer, IProgress<float> progress, CancellationToken cancellationToken) {
             using (request) {
                 request.SetRequestHeaders(requestHeaderMap);
                 if (progress != default(IProgress<float>)) {
@@ -279,9 +269,7 @@ namespace UniRx {
                     observer.OnError(new UnityWebRequestErrorException(request));
                     yield break;
                 }
-                if (downloadedCallback != default(Func<TDownloadHandler, T>) && (request.downloadHandler as TDownloadHandler) != default(TDownloadHandler)) {
-                    observer.OnNext(downloadedCallback((TDownloadHandler)request.downloadHandler));
-                }
+                observer.OnNext(request);
                 observer.OnCompleted();
             }
         }
