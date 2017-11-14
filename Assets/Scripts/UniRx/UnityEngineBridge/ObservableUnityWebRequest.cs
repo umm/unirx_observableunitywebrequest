@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -240,19 +241,21 @@ namespace UniRx {
         private static IEnumerator SendRequest(UnityWebRequest request, Dictionary<string, string> requestHeaderMap, IObserver<UnityWebRequest> observer, IProgress<float> progress, CancellationToken cancellationToken) {
             using (request) {
                 request.SetRequestHeaders(requestHeaderMap);
-                if (progress != default(IProgress<float>)) {
-                    AsyncOperation operation = request.Send();
-                    while (!operation.isDone && !cancellationToken.IsCancellationRequested) {
+#if UNITY_2017_2_OR_NEWER
+                AsyncOperation operation = request.SendWebRequest();
+#else
+                AsyncOperation operation = request.Send();
+#endif
+                while (!operation.isDone && !cancellationToken.IsCancellationRequested) {
+                    if (progress != default(IProgress<float>)) {
                         try {
                             progress.Report(operation.progress);
                         } catch (Exception e) {
                             observer.OnError(e);
                             yield break;
                         }
-                        yield return null;
                     }
-                } else {
-                    yield return request.Send();
+                    yield return null;
                 }
 
                 if (cancellationToken.IsCancellationRequested) {
@@ -290,6 +293,8 @@ namespace UniRx {
             }
         }
 
+        [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+        [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
         public class UnityWebRequestErrorException : Exception {
 
             public string RawErrorMessage {
