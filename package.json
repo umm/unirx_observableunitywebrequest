@@ -1,6 +1,6 @@
 {
   "name": "@umm/unirx_observableunitywebrequest",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Provide UniRx wrapper for UnityWebRequest",
   "homepage": "https://github.com/umm-projects/unirx_unitywebrequest",
   "bugs": {
