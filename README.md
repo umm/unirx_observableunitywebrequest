@@ -1,19 +1,16 @@
-# What?
+# UniRx ObservableUnityWebRequest
 
-* `UniRx.ObservableUnityWebRequest` を提供します。
-* `UniRx.ObservableWWW` の `UnityWebRequest` 版です。
+## What
 
-# Why?
+* Wrapper for `UnityEngine.Networking.UnityWebRequest` with UniRx.
 
-* UnityWebRequest 版が無かったので。
-
-# Install
+## Install
 
 ```shell
-$ npm install github:umm-projects/unirx_observableunitywebrequest.git
+yarn add "umm-projects/unirx_observableunitywebrequest#^1.0.0"
 ```
 
-# Usage
+## Usage
 
 ```csharp
 using UniRx;
@@ -31,9 +28,9 @@ public class Sample {
 }
 ```
 
-* `UnityWebRequest` が提供する主立ったメソッドをラップしています。
+* Provide some methods for defined in `UnityEngine.Networking.UnityWebRequest`.
 
-# License
+## License
 
 Copyright (c) 2017 Tetsuya Mori
 
