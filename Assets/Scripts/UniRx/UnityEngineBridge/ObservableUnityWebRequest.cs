@@ -2,12 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace UniRx {
 
-    // ReSharper disable once PartialTypeWithSinglePart
+    [PublicAPI]
+    [SuppressMessage("ReSharper", "PartialTypeWithSinglePart")]
     public static partial class ObservableUnityWebRequest {
 
         public static IObservable<UnityWebRequest> GetUnityWebRequest(string url, Func<string, UnityWebRequest> request = null, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
@@ -83,7 +86,11 @@ namespace UniRx {
 
         public static IObservable<AssetBundle> GetAssetBundle(string url, uint crc, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
             return GetAssetBundle(
+#if UNITY_2018_1_OR_NEWER
+                () => UnityWebRequestAssetBundle.GetAssetBundle(url, crc),
+#else
                 () => UnityWebRequest.GetAssetBundle(url, crc),
+#endif
                 requestHeaderMap,
                 progress
             );
@@ -91,7 +98,11 @@ namespace UniRx {
 
         public static IObservable<AssetBundle> GetAssetBundle(string url, uint version, uint crc, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
             return GetAssetBundle(
+#if UNITY_2018_1_OR_NEWER
+                () => UnityWebRequestAssetBundle.GetAssetBundle(url, version, crc),
+#else
                 () => UnityWebRequest.GetAssetBundle(url, version, crc),
+#endif
                 requestHeaderMap,
                 progress
             );
@@ -99,7 +110,11 @@ namespace UniRx {
 
         public static IObservable<AssetBundle> GetAssetBundle(string url, Hash128 hash, uint crc, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
             return GetAssetBundle(
+#if UNITY_2018_1_OR_NEWER
+                () => UnityWebRequestAssetBundle.GetAssetBundle(url, hash, crc),
+#else
                 () => UnityWebRequest.GetAssetBundle(url, hash, crc),
+#endif
                 requestHeaderMap,
                 progress
             );
@@ -107,7 +122,11 @@ namespace UniRx {
 
         public static IObservable<AssetBundle> GetAssetBundle(string url, CachedAssetBundle cachedAssetBundle, uint crc, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
             return GetAssetBundle(
+#if UNITY_2018_1_OR_NEWER
+                () => UnityWebRequestAssetBundle.GetAssetBundle(url, cachedAssetBundle, crc),
+#else
                 () => UnityWebRequest.GetAssetBundle(url, cachedAssetBundle, crc),
+#endif
                 requestHeaderMap,
                 progress
             );
@@ -293,8 +312,6 @@ namespace UniRx {
             }
         }
 
-        [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
-        [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
         public class UnityWebRequestErrorException : Exception {
 
             public string RawErrorMessage {
@@ -312,7 +329,7 @@ namespace UniRx {
                 private set;
             }
 
-            public System.Net.HttpStatusCode StatusCode {
+            public HttpStatusCode StatusCode {
                 get;
                 private set;
             }
@@ -329,29 +346,29 @@ namespace UniRx {
 
             // cache the text because if www was disposed, can't access it.
             public UnityWebRequestErrorException(UnityWebRequest request) {
-                this.Request = request;
-                this.RawErrorMessage = request.error;
-                this.ResponseHeaders = request.GetResponseHeaders();
-                this.HasResponse = false;
+                Request = request;
+                RawErrorMessage = request.error;
+                ResponseHeaders = request.GetResponseHeaders();
+                HasResponse = false;
 
-                this.StatusCode = (System.Net.HttpStatusCode)request.responseCode;
+                StatusCode = (HttpStatusCode)request.responseCode;
 
                 if (request.downloadHandler != null && !(request.downloadHandler is DownloadHandlerAssetBundle)) {
-                    this.Text = request.downloadHandler.text;
+                    Text = request.downloadHandler.text;
                 }
 
                 if (request.responseCode != 0) {
-                    this.HasResponse = true;
+                    HasResponse = true;
                 }
             }
 
             public override string ToString() {
-                var text = this.Text;
+                var text = Text;
                 if (string.IsNullOrEmpty(text)) {
                     return RawErrorMessage;
-                } else {
-                    return RawErrorMessage + " " + text;
                 }
+
+                return RawErrorMessage + " " + text;
             }
 
         }
