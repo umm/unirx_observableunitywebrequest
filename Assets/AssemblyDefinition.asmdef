@@ -1,0 +1,10 @@
+{
+  "name": "umm@unirx_observableunitywebrequest",
+  "references": [
+    "umm@unirx"
+  ],
+  "optionalUnityReferences": [],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false
+}
