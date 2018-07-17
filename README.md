@@ -7,7 +7,7 @@
 ## Install
 
 ```shell
-yarn add "umm-projects/unirx_observableunitywebrequest#^1.0.0"
+yarn add "umm/unirx_observableunitywebrequest#^1.0.0"
 ```
 
 ## Usage
