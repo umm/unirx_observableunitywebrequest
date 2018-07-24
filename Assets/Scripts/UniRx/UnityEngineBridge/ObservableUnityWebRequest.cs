@@ -41,17 +41,10 @@ namespace UniRx {
         }
 
         public static IObservable<Texture2D> GetTexture(string url, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
-            // XXX: 本来は UnityWebRequestTexture.GetTexture() を使うべき
-            //   Unity 2017.1.1p3 時点で「iOS に於いて、大量にリクエストを送ると downloadHandler に設定されるインスタンスが不正に書き換わる」
-            //   という問題があるため、従来のやり方で Texture2D のインスタンスを生成します。
-            return Get(
-                url,
-                (DownloadHandler downloadHandler) => {
-                    Texture2D texture2D = new Texture2D(2, 2, TextureFormat.RGBA32, false, false);
-                    texture2D.LoadImage(downloadHandler.data);
-                    return texture2D;
-                },
+            return Request(
+                UnityWebRequestTexture.GetTexture(url),
                 requestHeaderMap,
+                (DownloadHandlerTexture downloadHandler) => downloadHandler.texture,
                 progress
             );
         }
