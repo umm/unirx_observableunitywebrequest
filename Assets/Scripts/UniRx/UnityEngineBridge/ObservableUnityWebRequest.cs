@@ -58,7 +58,7 @@ namespace UniRx {
             );
         }
 
-#if !UNITY_IOS && !UNITY_ANDROID
+#if !UNITY_IOS && !UNITY_ANDROID && !UNITY_2018_2_OR_NEWER
         public static IObservable<MovieTexture> GetMovieTexture(string url, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
             return Request(
                 UnityWebRequestMultimedia.GetMovieTexture(url),
@@ -306,6 +306,7 @@ namespace UniRx {
             }
         }
 
+        [PublicAPI]
         public class UnityWebRequestErrorException : Exception {
 
             public string RawErrorMessage {
