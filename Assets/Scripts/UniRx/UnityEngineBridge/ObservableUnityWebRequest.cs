@@ -79,6 +79,7 @@ namespace UniRx {
         }
 
         public static IObservable<AssetBundle> GetAssetBundle(string url, uint crc, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
+            UnityEngine.Debug.Log("GetAssetBundle: " + url);
             return GetAssetBundle(
 #if UNITY_2018_1_OR_NEWER
                 () => UnityWebRequestAssetBundle.GetAssetBundle(url, crc),
@@ -91,6 +92,7 @@ namespace UniRx {
         }
 
         public static IObservable<AssetBundle> GetAssetBundle(string url, uint version, uint crc, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
+            UnityEngine.Debug.Log("GetAssetBundle: " + url);
             return GetAssetBundle(
 #if UNITY_2018_1_OR_NEWER
                 () => UnityWebRequestAssetBundle.GetAssetBundle(url, version, crc),
@@ -103,6 +105,7 @@ namespace UniRx {
         }
 
         public static IObservable<AssetBundle> GetAssetBundle(string url, Hash128 hash, uint crc, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
+            UnityEngine.Debug.Log("GetAssetBundle: " + url);
             return GetAssetBundle(
 #if UNITY_2018_1_OR_NEWER
                 () => UnityWebRequestAssetBundle.GetAssetBundle(url, hash, crc),
@@ -115,6 +118,7 @@ namespace UniRx {
         }
 
         public static IObservable<AssetBundle> GetAssetBundle(string url, CachedAssetBundle cachedAssetBundle, uint crc, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
+            UnityEngine.Debug.Log("GetAssetBundle: " + url);
             return GetAssetBundle(
 #if UNITY_2018_1_OR_NEWER
                 () => UnityWebRequestAssetBundle.GetAssetBundle(url, cachedAssetBundle, crc),
@@ -127,6 +131,7 @@ namespace UniRx {
         }
 
         public static IObservable<AssetBundle> GetAssetBundle(Func<UnityWebRequest> callback, Dictionary<string, string> requestHeaderMap = null, IProgress<float> progress = null) {
+            UnityEngine.Debug.Log("GetAssetBundle");
             IObservable<AssetBundle> stream = Request(
                 callback(),
                 requestHeaderMap,
